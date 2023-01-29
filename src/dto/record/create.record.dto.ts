@@ -1,8 +1,7 @@
-import { DoctorStatement, PatientStatment } from 'src/record/record.entity';
+import { MedicalStatement } from './../../model/medical.statement.model';
 
 export class CreateRecordDto {
-  patientStatment: PatientStatment;
-  doctorStatement: DoctorStatement[];
+  statements: MedicalStatement[];
   status: string;
   duration: number;
   patientId: string;

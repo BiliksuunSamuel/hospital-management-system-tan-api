@@ -9,4 +9,5 @@ export class UserInfoModel {
   authenticated: boolean;
   userType: string;
   userId: string;
+  phoneNumber: string;
 }

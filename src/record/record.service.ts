@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { Record } from './record.entity';
 import { UserInfoModel } from 'src/model/user.info.model';
 import { PatientService } from 'src/patient/patient.service';
+import { PatientInfoModel } from 'src/model/patient.info.model';
 
 @Injectable()
 export class RecordService {
@@ -85,6 +86,24 @@ export class RecordService {
     );
   }
 
+  //get patient record by user
+  async getRecordsByPatient(
+    patientId: string,
+  ): Promise<ApiResponseModel<Record[]>> {
+    const patient = await this.patientService.getPatient(patientId);
+    if (patient) {
+      return {
+        data: await this.recordRepository.findBy({ patientId }),
+        message: '',
+        code: HttpStatus.OK,
+      };
+    }
+    throw new HttpException(
+      'Patient Not Found, Access Not Allowed',
+      HttpStatus.NOT_FOUND,
+    );
+  }
+
   //get all patien records
   async getRecords(): Promise<ApiResponseModel<Record[]>> {
     return {
@@ -104,6 +123,32 @@ export class RecordService {
     return {
       data: record,
       message: 'Patient Medical Record Added Successfully',
+      code: HttpStatus.OK,
+    };
+  }
+
+  //get active record
+  async getActivePatientRecord(
+    patientId: string,
+  ): Promise<ApiResponseModel<{ record: Record; patient: PatientInfoModel }>> {
+    const records = await this.recordRepository.findBy({
+      patientId,
+      status: 'open',
+    });
+    return {
+      data:
+        records.length > 0
+          ? {
+              record: records[records.length - 1],
+              patient: (await this.patientService.getPatientById(patientId))
+                .data,
+            }
+          : {
+              record: null,
+              patient: (await this.patientService.getPatientById(patientId))
+                .data,
+            },
+      message: records.length > 0 ? '' : 'No Records Found',
       code: HttpStatus.OK,
     };
   }

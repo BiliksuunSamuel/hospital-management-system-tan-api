@@ -51,10 +51,24 @@ export class RecordController {
   }
 
   //get patient records by user
-  @Get('patient/:id')
+  @Get('user/:id')
   @UseGuards(JwtAuthGuard)
   async getPatientRecordsByUser(@Param() { id }: any, @Request() req) {
     const user = await this.middlewareService.checkUser(req?.user?.phoneNumber);
     return await this.recordService.getRecord({ ...user, token: '' }, id);
+  }
+
+  //get patient records by user
+  @Get('patient/:id')
+  @UseGuards(JwtAuthGuard)
+  async getPatientRecordsByPatient(@Param() { id }: any, @Request() req) {
+    const user = await this.middlewareService.checkUser(req?.user?.phoneNumber);
+    return await this.recordService.getRecordsByPatient(id);
+  }
+
+  @Get('/active/:id')
+  @UseGuards(JwtAuthGuard)
+  async getActiveRecord(@Param() { id }: any, @Request() req) {
+    return await this.recordService.getActivePatientRecord(id);
   }
 }

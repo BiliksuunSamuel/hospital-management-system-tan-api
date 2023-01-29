@@ -1,27 +1,13 @@
+import { MedicalStatement } from './../model/medical.statement.model';
 import { Column, Entity, ObjectIdColumn } from 'typeorm';
-
-export class PatientStatment {
-  description: string;
-  recommendation: string;
-}
-
-export class DoctorStatement {
-  doctorId: string;
-  description: string;
-  recommendation: string;
-  date: string;
-}
 
 @Entity()
 export class Record {
   @ObjectIdColumn()
   _id: string;
 
-  @Column()
-  patientStatment: PatientStatment;
-
   @Column({ type: 'array' })
-  doctorStatement: DoctorStatement[];
+  statements: MedicalStatement[];
 
   @Column()
   createdAt: string;

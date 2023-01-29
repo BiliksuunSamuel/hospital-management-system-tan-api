@@ -3,6 +3,7 @@ import { Injectable, HttpStatus, HttpException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PatientAuthenticationDto } from 'src/dto/patient/authenticate.dto';
 import { PatientLoginDto } from 'src/dto/patient/login.dto';
+import { AdminUpdateUserDto } from 'src/dto/user/admin.update.user.dto';
 import { AuthenticateUserDto } from 'src/dto/user/authenticate.user.dto';
 import { CreateUserDto } from 'src/dto/user/create.user.dto';
 import { ApiResponseModel } from 'src/model/api.response.model';
@@ -21,6 +22,40 @@ export class AuthService {
     private jwtService: JwtService,
     private readonly patientService: PatientService,
   ) {}
+
+  async getUsers(userId: string): Promise<ApiResponseModel<UserInfoModel[]>> {
+    const users = await this.usersService.getUsers();
+    this._logger.log(users);
+    return {
+      data: users.filter((u) => u.userId !== userId),
+      message: '',
+      code: HttpStatus.OK,
+    };
+  }
+
+  async adminUpdateUserRole(
+    phone: string,
+    info: AdminUpdateUserDto,
+  ): Promise<ApiResponseModel<UserInfoModel[]>> {
+    const users = await this.usersService.adminUpdateUserRole(info);
+    return {
+      data: users.filter((u) => u.phoneNumber !== phone),
+      code: HttpStatus.OK,
+      message: '',
+    };
+  }
+
+  async adminUpdateUserType(
+    phone: string,
+    info: AdminUpdateUserDto,
+  ): Promise<ApiResponseModel<UserInfoModel[]>> {
+    const users = await this.usersService.adminUpdateUserType(info);
+    return {
+      data: users.filter((u) => u.phoneNumber !== phone),
+      code: HttpStatus.OK,
+      message: '',
+    };
+  }
 
   async validateUser(
     phoneNumber: string,

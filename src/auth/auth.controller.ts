@@ -16,6 +16,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { LocalAuthGuard } from './local-auth.guard';
 import { PatientLoginDto } from 'src/dto/patient/login.dto';
 import { PatientAuthenticationDto } from 'src/dto/patient/authenticate.dto';
+import { AdminUpdateUserDto } from 'src/dto/user/admin.update.user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -38,6 +39,32 @@ export class AuthController {
     return await this.authService.getProfileInfo(req.user);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Put('user/role')
+  async updateUserRole(@Body() info: AdminUpdateUserDto, @Request() req) {
+    return await this.authService.adminUpdateUserRole(
+      req.user?.phoneNumber,
+      info,
+    );
+  }
+  @UseGuards(JwtAuthGuard)
+  @Put('user/type')
+  async updateUserType(@Body() info: AdminUpdateUserDto, @Request() req) {
+    return await this.authService.adminUpdateUserType(
+      req.user?.phoneNumber,
+      info,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('users')
+  async getUsers(@Request() req) {
+    const user = await this.middleWareService.checkUser(req?.user.phoneNumber);
+    await this.middleWareService.isAdmin(user.phoneNumber);
+    const data = await this.authService.getUsers(user.userId);
+    return data;
+  }
+
   @Post('register')
   async register(@Body() info: CreateUserDto) {
     return await this.authService.register(info);
@@ -51,7 +78,9 @@ export class AuthController {
 
   @Post('patient/login')
   async patientLogin(@Body() info: PatientLoginDto) {
-    return await this.authService.patientLogin(info);
+    const data = await this.authService.patientLogin(info);
+    this._logger.log(data);
+    return data;
   }
 
   @Post('patient/authenticate')

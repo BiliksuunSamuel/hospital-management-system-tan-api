@@ -1,4 +1,5 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Role } from 'src/enums/roles.enum';
 import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 
@@ -16,10 +17,9 @@ export class MiddlewareService {
 
   async isAdmin(phoneNumber: string): Promise<User> {
     const user = await this.userService.getUserByPhoneNumber(phoneNumber);
-    if (user && user.role === 'admin') {
+    if (user && user.role === Role.Admin) {
       return user;
     }
-
     throw new HttpException(
       'Operation Failed, UnAuthorized Access',
       HttpStatus.UNAUTHORIZED,

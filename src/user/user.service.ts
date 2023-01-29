@@ -1,5 +1,11 @@
 import { randomUUID } from 'crypto';
-import { GenerateDate, GenerateOtp, HashPassword, GenerateId } from 'src/utils';
+import {
+  GenerateDate,
+  GenerateOtp,
+  HashPassword,
+  GenerateId,
+  formatUserInfo,
+} from 'src/utils';
 import { HttpStatus } from '@nestjs/common/enums';
 import { ApiResponseModel } from './../model/api.response.model';
 import { HttpException, Injectable } from '@nestjs/common';
@@ -10,6 +16,8 @@ import { User } from './user.entity';
 import { FunctionsService } from 'src/functions/functions.service';
 import { AuthenticateUserDto } from 'src/dto/user/authenticate.user.dto';
 import { UserInfoModel } from 'src/model/user.info.model';
+import { Role } from 'src/enums/roles.enum';
+import { AdminUpdateUserDto } from 'src/dto/user/admin.update.user.dto';
 
 @Injectable()
 export class UserService {
@@ -27,6 +35,8 @@ export class UserService {
     user.lastLogin = GenerateDate();
     user.password = HashPassword(info.password);
     user.userId = GenerateId();
+    user.userType = 'nurse';
+    user.role = Role.User;
     user.authenticationCode = GenerateOtp();
     const phoneUser = await this.userRepository.findOneBy({
       phoneNumber: info.phoneNumber,
@@ -56,6 +66,30 @@ export class UserService {
     return user;
   }
 
+  async adminUpdateUserRole(
+    info: AdminUpdateUserDto,
+  ): Promise<UserInfoModel[]> {
+    const user = await this.userRepository.findOneBy({ userId: info.userId });
+    if (user) {
+      await this.userRepository.update(user._id, { role: info.value });
+      const users = await this.userRepository.find({});
+      return users.map(formatUserInfo);
+    }
+    throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+  }
+
+  async adminUpdateUserType(
+    info: AdminUpdateUserDto,
+  ): Promise<UserInfoModel[]> {
+    const user = await this.userRepository.findOneBy({ userId: info.userId });
+    if (user) {
+      await this.userRepository.update(user._id, { userType: info.value });
+      const users = await this.userRepository.find({});
+      return users.map(formatUserInfo);
+    }
+    throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+  }
+
   async verifyOtp(user: any): Promise<User> {
     const userInfo = await this.userRepository.findOneBy({
       phoneNumber: user.phoneNumber,
@@ -75,8 +109,9 @@ export class UserService {
     return (await this.userRepository.findOneBy({ email })) || null;
   }
 
-  async getUsers(): Promise<User[]> {
-    return await this.userRepository.find({});
+  async getUsers(): Promise<UserInfoModel[]> {
+    const users = await this.userRepository.find({});
+    return users.map(formatUserInfo);
   }
 
   async getUserById(id: string): Promise<User | null> {

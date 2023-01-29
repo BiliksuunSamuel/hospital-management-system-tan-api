@@ -2,6 +2,8 @@ import * as bcrypt from 'bcrypt';
 import * as otpgenerator from 'otp-generator';
 import * as dayjs from 'dayjs';
 import { randomUUID } from 'crypto';
+import { User } from 'src/user/user.entity';
+import { UserInfoModel } from 'src/model/user.info.model';
 export function HashPassword(password: string = '') {
   return bcrypt.hashSync(password, 10);
 }
@@ -53,4 +55,9 @@ export function GenerateRecordId() {
     specialChars: false,
     lowerCaseAlphabets: false,
   });
+}
+
+export function formatUserInfo(user: User): UserInfoModel {
+  const { password, authenticationCode, ...others } = user;
+  return { ...others, token: '' };
 }

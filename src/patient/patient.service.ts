@@ -6,6 +6,7 @@ import { ObjectID, Repository } from 'typeorm';
 import { CreatePatientDto } from 'src/dto/patient/create.patient.dto';
 import { ApiResponseModel } from 'src/model/api.response.model';
 import {
+  formatPatientInfo,
   GenerateDate,
   GenerateId,
   GenerateOtp,
@@ -179,7 +180,7 @@ export class PatientService {
         await this.patientRepository.update(patient._id, {
           recordPermissions: patient.recordPermissions.map((rp) => {
             if (rp.userId === info.userId) {
-              return { ...info };
+              return { ...info, id: GenerateId() };
             } else {
               return rp;
             }
@@ -216,8 +217,18 @@ export class PatientService {
       if (patient.recordPermissions) {
         await this.patientRepository.update(patient._id, {
           recordPermissions: patient.recordPermissions.filter(
-            (rp) => rp.userId !== info.userId,
+            (rp) =>
+              rp.userId !== info.userId && rp.documentId !== info.documentId,
           ),
+        });
+        var user = await this.userService.getUserById(info.userId);
+        await this.functionsService.sendMessage({
+          reciepient: user.phoneNumber,
+          message: `Hello ${user.firstName} ${
+            user.lastName
+          }, your request to access ${patient.firstName} ${
+            patient.lastName
+          } medical data has been ${info.status ? 'approved' : 'declined'}`,
         });
       }
       return {
@@ -230,12 +241,15 @@ export class PatientService {
   }
 
   //delete patient
-  async deletePatient(id: string): Promise<ApiResponseModel<any>> {
+  async deletePatient(
+    id: string,
+  ): Promise<ApiResponseModel<PatientInfoModel[]>> {
     const patient = await this.patientRepository.findOneBy({ patientId: id });
     if (patient) {
       await this.patientRepository.remove(patient);
+      const patients = await this.patientRepository.find({});
       return {
-        data: null,
+        data: patients.map(formatPatientInfo),
         message: 'Patient Deleted Successfully',
         code: HttpStatus.OK,
       };

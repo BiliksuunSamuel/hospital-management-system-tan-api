@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   Logger,
+  Param,
   Post,
   Put,
   Request,
@@ -62,6 +63,19 @@ export class AuthController {
     const user = await this.middleWareService.checkUser(req?.user.phoneNumber);
     await this.middleWareService.isAdmin(user.phoneNumber);
     const data = await this.authService.getUsers(user.userId);
+    return data;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('patient/profile/:id')
+  async getPatientProfile(@Param() { id }: any) {
+    return await this.authService.getPatientProfileInfo(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('users/all')
+  async getAllUsers(@Request() req) {
+    const data = await this.authService.getUsers('');
     return data;
   }
 

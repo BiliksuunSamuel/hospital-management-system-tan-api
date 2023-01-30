@@ -43,6 +43,17 @@ export class RecordController {
     return await this.recordService.updatePatientRecord(info, id);
   }
 
+  @Get('request/:id')
+  @UseGuards(JwtAuthGuard)
+  async getRequestRecordData(@Param() { id }: any) {
+    return await this.recordService.getPatientRequestRecords(id);
+  }
+
+  @Get('user/accessible/:id')
+  @UseGuards(JwtAuthGuard)
+  async getUserAccessibleRecords(@Param() { id }: any) {
+    return await this.recordService.getUserAccessibleRecords(id);
+  }
   @Get()
   @UseGuards(JwtAuthGuard)
   async getRecords(@Request() req) {

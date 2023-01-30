@@ -4,6 +4,10 @@ import * as dayjs from 'dayjs';
 import { randomUUID } from 'crypto';
 import { User } from 'src/user/user.entity';
 import { UserInfoModel } from 'src/model/user.info.model';
+import { RecordRequestModel } from 'src/dto/record/record.request.model';
+import { Record } from 'src/record/record.entity';
+import { Patient } from 'src/patient/patient.entity';
+import { PatientInfoModel } from 'src/model/patient.info.model';
 export function HashPassword(password: string = '') {
   return bcrypt.hashSync(password, 10);
 }
@@ -60,4 +64,18 @@ export function GenerateRecordId() {
 export function formatUserInfo(user: User): UserInfoModel {
   const { password, authenticationCode, ...others } = user;
   return { ...others, token: '' };
+}
+
+export function formatRecordRequestModel(
+  records: Record[],
+): RecordRequestModel[] {
+  return records.map((r) => ({
+    date: dayjs(r.createdAt).format('dd, DD/MM/YYYY'),
+    recordId: r.recordId,
+  }));
+}
+
+export function formatPatientInfo(patient: Patient): PatientInfoModel {
+  const { password, ...others } = patient;
+  return others;
 }

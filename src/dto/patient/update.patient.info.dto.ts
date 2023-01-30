@@ -5,8 +5,6 @@ export class UpdatePatientInfoDto {
   readonly firstName: string;
   @IsString()
   readonly lastName: string;
-
-  @IsString()
   readonly email: string;
   @IsString()
   readonly contact: string;
@@ -14,6 +12,4 @@ export class UpdatePatientInfoDto {
   readonly dateOfBirth: string;
 
   readonly address?: string;
-  @IsString()
-  readonly gender: string;
 }

@@ -1,10 +1,13 @@
+import { RecordPermissionType } from 'src/enums/record.permissions.type';
 import { Entity, Column, ObjectIdColumn } from 'typeorm';
 
 export class PatientRecordPermission {
   userId: string;
-  permissionType: 'single' | 'all';
+  permissionType: RecordPermissionType;
   documentId?: string;
   status: boolean;
+  note: string;
+  id: string;
 }
 
 @Entity()

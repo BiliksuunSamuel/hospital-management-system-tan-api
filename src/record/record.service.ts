@@ -1,5 +1,9 @@
 import { randomUUID } from 'crypto';
-import { GenerateDate, GenerateId, GenerateRecordId } from 'src/utils';
+import {
+  formatRecordRequestModel,
+  GenerateDate,
+  GenerateRecordId,
+} from 'src/utils';
 import { CreateRecordDto } from './../dto/record/create.record.dto';
 import { Injectable, HttpException } from '@nestjs/common';
 import { HttpStatus } from '@nestjs/common/enums';
@@ -10,6 +14,8 @@ import { Record } from './record.entity';
 import { UserInfoModel } from 'src/model/user.info.model';
 import { PatientService } from 'src/patient/patient.service';
 import { PatientInfoModel } from 'src/model/patient.info.model';
+import { RecordRequestModel } from 'src/dto/record/record.request.model';
+import { RecordPermissionType } from 'src/enums/record.permissions.type';
 
 @Injectable()
 export class RecordService {
@@ -123,6 +129,58 @@ export class RecordService {
     return {
       data: record,
       message: 'Patient Medical Record Added Successfully',
+      code: HttpStatus.OK,
+    };
+  }
+
+  //get patient request records
+  async getPatientRequestRecords(
+    patientId: string,
+  ): Promise<ApiResponseModel<RecordRequestModel[]>> {
+    const records = await this.recordRepository.findBy({ patientId });
+    return {
+      data: formatRecordRequestModel(records),
+      code: HttpStatus.OK,
+      message: '',
+    };
+  }
+
+  //get user accessible records
+
+  async getUserAccessibleRecords(
+    userId: string,
+  ): Promise<ApiResponseModel<Record[]>> {
+    const patients = await this.patientService.get();
+    const list: { patientId: string; recordId: string; all: boolean }[] = [];
+    patients.data.map((pi) => {
+      {
+        pi.recordPermissions.map((p) => {
+          if (p.userId === userId && p.status) {
+            list.push({
+              patientId: pi.patientId,
+              recordId: p.documentId,
+              all: p.permissionType === RecordPermissionType.All,
+            });
+          }
+        });
+      }
+    });
+    const records = await this.recordRepository.find({});
+    let medFiles: Record[] = [];
+
+    list.map((l) => {
+      if (l.all) {
+        const d = records.filter((r) => r.patientId === l.patientId);
+        medFiles = [...medFiles, ...d];
+      } else {
+        const d = records.filter((r) => r.recordId === l.recordId);
+        medFiles = [...medFiles, ...d];
+      }
+    });
+
+    return {
+      data: medFiles,
+      message: '',
       code: HttpStatus.OK,
     };
   }

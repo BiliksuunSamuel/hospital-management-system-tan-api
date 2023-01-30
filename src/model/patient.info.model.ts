@@ -1,3 +1,5 @@
+import { PatientRecordPermission } from 'src/patient/patient.entity';
+
 export class PatientInfoModel {
   firstName: string;
   lastName: string;
@@ -10,4 +12,5 @@ export class PatientInfoModel {
   gender: string;
   patientId: string;
   token?: string;
+  recordPermissions: PatientRecordPermission[];
 }

@@ -6,6 +6,7 @@ import { PatientController } from './patient.controller';
 import { Patient } from './patient.entity';
 import { MiddlewareModule } from 'src/middleware/middleware.module';
 import { FunctionsModule } from 'src/functions/functions.module';
+import { RecordModule } from 'src/record/record.module';
 
 @Module({
   providers: [PatientService],

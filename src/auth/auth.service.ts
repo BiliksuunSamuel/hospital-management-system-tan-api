@@ -12,7 +12,7 @@ import { UserInfoModel } from 'src/model/user.info.model';
 import { PatientService } from 'src/patient/patient.service';
 import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
-import { ComparePassword, HashPassword } from 'src/utils';
+import { ComparePassword, formatPatientInfo, HashPassword } from 'src/utils';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +25,6 @@ export class AuthService {
 
   async getUsers(userId: string): Promise<ApiResponseModel<UserInfoModel[]>> {
     const users = await this.usersService.getUsers();
-    this._logger.log(users);
     return {
       data: users.filter((u) => u.userId !== userId),
       message: '',
@@ -119,6 +118,21 @@ export class AuthService {
       };
     }
     throw new HttpException('Account Not Found', HttpStatus.NOT_FOUND);
+  }
+
+  async getPatientProfileInfo(
+    patientId: string,
+  ): Promise<ApiResponseModel<PatientInfoModel>> {
+    const patient = await this.patientService.getPatient(patientId);
+    const payload = { phoneNumber: patient.contact, id: patient.patientId };
+    return {
+      data: {
+        ...formatPatientInfo(patient),
+        token: await this.jwtService.signAsync(payload),
+      },
+      message: '',
+      code: HttpStatus.OK,
+    };
   }
 
   async authenticateUserAccount(

@@ -6,4 +6,6 @@ export class MedicalStatement {
   suggestionsAndConclusions: string;
   id: string;
   title: string;
+  medicalCost: number;
+  paid: boolean;
 }

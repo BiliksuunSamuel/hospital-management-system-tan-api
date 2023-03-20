@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import {
   formatRecordRequestModel,
   GenerateDate,
+  GenerateId,
   GenerateRecordId,
 } from 'src/utils';
 import { CreateRecordDto } from './../dto/record/create.record.dto';
@@ -16,6 +17,7 @@ import { PatientService } from 'src/patient/patient.service';
 import { PatientInfoModel } from 'src/model/patient.info.model';
 import { RecordRequestModel } from 'src/dto/record/record.request.model';
 import { RecordPermissionType } from 'src/enums/record.permissions.type';
+import { MedicalStatement } from 'src/model/medical.statement.model';
 
 @Injectable()
 export class RecordService {
@@ -35,6 +37,55 @@ export class RecordService {
       message: '',
       code: HttpStatus.OK,
     };
+  }
+
+  //update patient medical statement
+  async updateMedicalStatement(
+    patientId: string,
+    recordId: string,
+    statement: MedicalStatement,
+  ): Promise<ApiResponseModel<{ record: Record; patient: PatientInfoModel }>> {
+    try {
+      var record = await this.recordRepository.findOneBy({
+        recordId,
+        patientId,
+      });
+      console.log(statement);
+      if (record) {
+        await this.recordRepository.update(record._id, {
+          statements: record.statements.map((s) => {
+            if (s.id === statement.id) {
+              return statement;
+            } else {
+              return s;
+            }
+          }),
+          updatedAt: GenerateDate(),
+        });
+        const patient = (
+          await this.patientService.getPatientById(record.patientId)
+        ).data;
+        const recordInfo = await this.recordRepository.findOneBy({
+          recordId,
+          patientId,
+        });
+        return {
+          data: {
+            record: recordInfo,
+            patient,
+          },
+          message: 'Medical Statement Updated',
+          code: HttpStatus.OK,
+        };
+      }
+      throw new HttpException('Patient record not found', HttpStatus.NOT_FOUND);
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'sorry,something went wrong',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   //delete patient medical record
@@ -120,14 +171,23 @@ export class RecordService {
   }
 
   //create patient medical record
-  async createRecord(info: CreateRecordDto): Promise<ApiResponseModel<Record>> {
+  async createRecord(
+    info: CreateRecordDto,
+  ): Promise<ApiResponseModel<{ record: Record; patient: PatientInfoModel }>> {
     const record = await this.recordRepository.create(info);
     record.createdAt = GenerateDate();
     record.recordId = GenerateRecordId();
-
+    record.statements = info.statements.map((s) => {
+      return { ...s, id: GenerateId() };
+    });
+    console.log(info);
     await this.recordRepository.save(record);
     return {
-      data: record,
+      data: {
+        record,
+        patient: (await this.patientService.getPatientById(record.patientId))
+          .data,
+      },
       message: 'Patient Medical Record Added Successfully',
       code: HttpStatus.OK,
     };
@@ -218,6 +278,15 @@ export class RecordService {
   ): Promise<ApiResponseModel<Record>> {
     const record = await this.recordRepository.findOneBy({ recordId: id });
     if (record) {
+      info.statements = info.statements.map((s) => {
+        if (s.id === null) {
+          console.log(s);
+          s.id = GenerateId();
+          return s;
+        } else {
+          return s;
+        }
+      });
       await this.recordRepository.update(record._id, { ...info });
       return {
         data: await this.recordRepository.findOneBy({ recordId: id }),

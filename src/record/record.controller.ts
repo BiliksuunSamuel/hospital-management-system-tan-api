@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { MiddlewareService } from 'src/middleware/middleware.service';
 import { RecordService } from './record.service';
+import { MedicalStatement } from 'src/model/medical.statement.model';
 
 @Controller('record')
 export class RecordController {
@@ -20,6 +21,19 @@ export class RecordController {
     private readonly recordService: RecordService,
     private readonly middlewareService: MiddlewareService,
   ) {}
+
+  @Put('statement/update/:patientId/:recordId')
+  @UseGuards(JwtAuthGuard)
+  async updateMedicalStatement(
+    @Param() { patientId, recordId }: any,
+    @Body() info: MedicalStatement,
+  ) {
+    return await this.recordService.updateMedicalStatement(
+      patientId,
+      recordId,
+      info,
+    );
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)

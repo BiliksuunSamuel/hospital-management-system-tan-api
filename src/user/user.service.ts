@@ -35,7 +35,6 @@ export class UserService {
     user.lastLogin = GenerateDate();
     user.password = HashPassword(info.password);
     user.userId = GenerateId();
-    user.userType = 'nurse';
     user.role = Role.User;
     user.authenticationCode = GenerateOtp();
     const phoneUser = await this.userRepository.findOneBy({

@@ -96,4 +96,13 @@ export class RecordController {
   async getActiveRecord(@Param() { id }: any, @Request() req) {
     return await this.recordService.getActivePatientRecord(id);
   }
+
+  @Put('patient/:patientId/:recordId/:status')
+  @UseGuards(JwtAuthGuard)
+  async updateRecordMedicaltatus(
+    @Param() { patientId, recordId, status }: any,
+    @Request() req,
+  ) {
+    return await this.recordService.closeRecord(recordId, patientId, status);
+  }
 }

@@ -205,6 +205,34 @@ export class RecordService {
     };
   }
 
+  //close patient medical record
+  async closeRecord(
+    recordId: string,
+    patientId: string,
+    status: string,
+  ): Promise<ApiResponseModel<Record[]>> {
+    try {
+      const record = await this.recordRepository.findOneBy({
+        recordId,
+        patientId,
+      });
+      if (record) {
+        await this.recordRepository.update(record._id, { status });
+      }
+      return {
+        data: await this.recordRepository.find({ where: { patientId } }),
+        message: '',
+        code: HttpStatus.OK,
+      };
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'sorry, something went wrong',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   //get user accessible records
 
   async getUserAccessibleRecords(
